@@ -1,0 +1,55 @@
+---
+title: "Untitled"
+author: "Christopher Hopkins"
+date: "10/16/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+data_Covid <-read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")
+data_Covid
+```
+
+```{r}
+covid19(c("Spain", "USA", "Colombia","KR"), level = 3) %>% 
+  colnames()
+```
+
+```{r}
+data_Covid %>% 
+  colnames()
+```
+
+```{r}
+gmr <- read_csv("https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv")
+```
+```{r}
+gmr %>% 
+  colnames()
+str(gmr)
+```
+```{r}
+covid19(c("Spain", "USA", "Colombia","KR"), level = 3) %>% 
+  filter(!is.na("administrative_area_level_3")) %>% 
+  group_by( administrative_area_level_3, administrative_area_level_2, administrative_area_level, date) %>% 
+  count() %>% 
+  filter(n>1)
+```
+
+```{r}
+covid19("USA") %>% 
+  select(stay_home_restrictions, date) %>% 
+  filter(!stay_home_restrictions==0) %>% 
+  arrange(date)
+```
+```{r}
+C <- read_csv("OxCGRT_latest.csv")
+C
+```
+
