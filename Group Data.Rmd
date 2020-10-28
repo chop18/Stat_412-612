@@ -51,5 +51,8 @@ covid19("USA") %>%
 ```{r}
 C <- read_csv("OxCGRT_latest.csv")
 C
+
+covid19("Colombia") %>% 
+  select(stay_home_restrictions)
 ```
 

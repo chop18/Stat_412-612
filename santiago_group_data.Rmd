@@ -1,0 +1,38 @@
+---
+title: "String r homework"
+author: "Santiago Nule"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: 
+    number_sections: TRUE
+    latex_engine: xelatex
+  html_document: default
+urlcolor: blue
+---
+
+```{r}
+scrabble <- read_csv("https://dcgerard.github.io/stat_412_612/data/words.txt")
+```
+
+```{r}
+
+
+str_count(scrabble) #Count how many strings in vector
+
+
+```
+
+2. How many words either begin or end in “X”?
+
+```{r}
+scrabble %>% 
+  str_extract_all("^X", "9999")
+  filter(str_extract_all("9999"))
+```
+
+3. How many words contain all of the vowels (A, E, I, O, and U)?
+
+```{r}
+str_replace_all(scrabble, "(?i)[aeiou]")
+```
+
