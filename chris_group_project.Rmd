@@ -1,0 +1,50 @@
+---
+title: "Chris group project"
+author: "Christopher Hopkins"
+date: "10/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+```
+
+
+When did states issue stay at home orders:
+```{r}
+covid19("US", level = 2) %>% 
+  arrange(date, administrative_area_level_2) %>% 
+  relocate(administrative_area_level_2, .before = id)
+
+covid19("US", level = 2) %>% 
+  group_by(administrative_area_level_2, stay_home_restrictions) %>% 
+  mutate(first_date = min(date)) %>% 
+  select(administrative_area_level_2, date, first_date, stay_home_restrictions) %>% 
+  distinct(first_date) %>% 
+  filter(!is.na(stay_home_restrictions)&!stay_home_restrictions==0) %>% 
+  arrange(first_date) %>% 
+  group_by(first_date) %>% 
+  mutate(count=n()) %>% 
+  separate(first_date,
+           c("Year", "Month", "Day")) %>% 
+  arrange(Month, Day) %>% 
+  distinct(administrative_area_level_2, .keep_all=TRUE)->first_date
+first_date %>% 
+  arrange(administrative_area_level_2)
+
+covid19("US", level = 2) %>% 
+  group_by(administrative_area_level_2, confirmed) %>% 
+  mutate(first_date = min(date)) %>% 
+  group_by(administrative_area_level_2) %>% 
+  slice_min(confirmed) %>% 
+  select(administrative_area_level_2, date, first_date, confirmed) %>% 
+  distinct(administrative_area_level_2) %>% 
+  arrange(administrative_area_level_2)
+```
+
