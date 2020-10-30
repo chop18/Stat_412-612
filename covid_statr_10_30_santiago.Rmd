@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(COVID19)
 library(tidyverse)
 library(readr)
-distinct(administrative_area_level_2, .keep_all=TRUE)
 ```
 
 
@@ -38,14 +37,38 @@ easy_covid_df %>%
   arrange(first_date0) %>% 
   group_by(first_date0) %>% 
   mutate(num_of_states_with_with_rest=n()) %>% 
+  distinct(state_name, .keep_all=TRUE) ->first_date_stayh_orders
+
+first_date_stayh_orders %>% 
+  filter(state_name=="Washington")
+
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date)) %>% 
+  select(state_name, date, first_date0, stay_home_restrictions) %>% 
+  distinct(first_date0, .keep_all = TRUE) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  group_by(first_date0) %>% 
+  mutate(num_of_states_with_with_rest=n()) %>% 
   separate(first_date0,
            c("Year", "Month", "Day")) %>% 
   arrange(Month, Day) %>% 
-  distinct(state_name, .keep_all=TRUE)->first_date_stayh_orders
+  distinct(state_name, .keep_all=TRUE)->first_date_stayh_orders2
 
-first_date_stayh_orders %>% 
-  arrange(state_name)
-  
+first_date_stayh_orders2 %>% 
+  filter(state_name=="Washington")
+
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date)) %>% 
+  select(state_name, date, first_date0, stay_home_restrictions) %>% 
+  distinct(first_date0, .keep_all = TRUE) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  group_by(first_date0) %>% 
+  mutate(num_of_states_with_with_rest=n()) %>% 
+  filter(state_name=="Washington")
 ```
 
 What days did states have their first case and the rate?
@@ -66,7 +89,7 @@ easy_covid_df %>%
 
 
 ```{r}
-
-
+first_date_stayh_orders %>% 
+  left_join(rate_confirmed, by=)
 ```
 
