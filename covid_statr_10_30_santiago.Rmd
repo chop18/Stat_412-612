@@ -1,0 +1,72 @@
+---
+title: "Statistical Research on the Impact of Covid Stay at Home Restrictions"
+author: "Santiago Nule"
+date: "10/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+distinct(administrative_area_level_2, .keep_all=TRUE)
+```
+
+
+
+```{r}
+covid19("US", level = 2) %>%
+  rename(state_name = administrative_area_level_2 ) %>% 
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+```
+
+
+
+What day did states first issue stay at home orders:
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date)) %>% 
+  select(state_name, date, first_date0, stay_home_restrictions) %>% 
+  distinct(first_date0) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  group_by(first_date0) %>% 
+  mutate(num_of_states_with_with_rest=n()) %>% 
+  separate(first_date0,
+           c("Year", "Month", "Day")) %>% 
+  arrange(Month, Day) %>% 
+  distinct(state_name, .keep_all=TRUE)->first_date_stayh_orders
+
+first_date_stayh_orders %>% 
+  arrange(state_name)
+  
+```
+
+What days did states have their first case and the rate?
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, confirmed) %>% 
+  mutate(first_date = min(date)) %>% 
+  select(state_name, date, first_date, confirmed) %>% 
+  arrange(date, state_name) %>% 
+  group_by(state_name) %>% 
+  filter(confirmed>0) %>% 
+  mutate(daily_rate = c(0,diff(confirmed))) %>% 
+  mutate(second_rate= c(0,diff(daily_rate))) %>% 
+  arrange(state_name, date)
+  
+
+```
+
+
+```{r}
+
+
+```
+
