@@ -20,8 +20,10 @@ When did states issue stay at home orders:
 ```{r}
 covid19("US", level = 2) %>% 
   arrange(date, administrative_area_level_2) %>% 
-  relocate(administrative_area_level_2, .before = id)
+  relocate(administrative_area_level_2, .before = id) %>% 
+  filter(administrative_area_level_2=="California")
 
+#first day that stay home restrictions are enforced
 covid19("US", level = 2) %>% 
   group_by(administrative_area_level_2, stay_home_restrictions) %>% 
   mutate(first_date = min(date)) %>% 
@@ -38,13 +40,14 @@ covid19("US", level = 2) %>%
 first_date %>% 
   arrange(administrative_area_level_2)
 
+#rate of change in confirmed cases
 covid19("US", level = 2) %>% 
   group_by(administrative_area_level_2, confirmed) %>% 
   mutate(first_date = min(date)) %>% 
-  group_by(administrative_area_level_2) %>% 
-  slice_min(confirmed) %>% 
   select(administrative_area_level_2, date, first_date, confirmed) %>% 
-  distinct(administrative_area_level_2) %>% 
-  arrange(administrative_area_level_2)
+  arrange(date, administrative_area_level_2) %>% 
+  group_by(administrative_area_level_2) %>% 
+  filter(confirmed>0) %>% 
+  mutate(daily_rate = c(0,diff(confirmed))) 
 ```
 
