@@ -1,0 +1,210 @@
+---
+title: "covid_project"
+author: "Jaehee Lee"
+date: "11/27/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Task1: What days did states have their first case and the rate?
+Graph the rates in a plot with respect to time. Try different kinds of plots potentially coloring or categorizing by a variable suca as state or region. 
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+```
+
+```{r}
+covid19("US", level = 2) %>%
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("administrative_area_level_2", "date", "confirmed", "tests")-> easy_covid_df
+```
+
+
+```{r}
+easy_covid_df %>% 
+  group_by(administrative_area_level_2, confirmed) %>% 
+  # mutate(first_date = min(date)) %>% 
+  select(administrative_area_level_2, date, confirmed) %>% 
+  arrange(date, administrative_area_level_2) %>% 
+  group_by(administrative_area_level_2) %>% 
+  filter(confirmed>0) %>% 
+  mutate(daily_rate = c(0,diff(confirmed))) %>% 
+  mutate(second_rate= c(0,diff(daily_rate))) %>% 
+  arrange(administrative_area_level_2, date) -> maindata
+```
+
+# Get mean of confirmed cases for each States
+```{r}
+library(data.table)
+meandata <- setDT(maindata)[,list(Mean = as.numeric(mean(confirmed))), by=administrative_area_level_2]
+```
+
+## inner join with maindata and meandata
+```{r}
+inner_join(meandata, maindata, by = "administrative_area_level_2") -> a
+```
+
+## Plot mean for every states
+```{r}
+ggplot(data = a, aes(x = Mean, y = administrative_area_level_2))+
+  geom_point()+
+  theme_bw()
+```
+
+# What day did states have their first case? 
+```{r}
+library(dplyr)
+maindata %>%
+    group_by(administrative_area_level_2) %>%
+    arrange(date) %>%
+    slice(1L) %>%  
+    select(administrative_area_level_2, date) -> first_case_day
+
+first_case_day
+```
+# show the states n
+```{r}
+unique(maindata$administrative_area_level_2)
+```
+# Northeast
+```{r}
+# Northeast 
+# 11 states there are 
+#Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont, Delaware, Maryland, New #Jersey, New York, and Pennsylvania.
+maindata %>%  
+  filter(administrative_area_level_2 == c("Connecticut", "Maine", "Massachusetts", "New Hampshire","Rhode Island", "Vermont", "Delaware", "Maryland", "New Jersey", "New York", "Pennsylvania")) -> northeast
+```
+```{r}
+ggplot(data =northeast, mapping = aes(x = date , y = confirmed))+ 
+  stat_smooth(method = loess,color='red') +
+  labs(x = "Time", y= "Confirmed Cases")+
+  theme_bw()  -> northeast_confirmed
+
+ggplot(data =northeast, mapping = aes(x = date , y = daily_rate))+ 
+  stat_smooth(method = loess,color='red') +
+  labs(x = "Time", y = "Daily Rate")+
+  theme_bw()  -> northeast_rate
+
+ggplot(data =northeast, mapping = aes(x = date , y = second_rate))+ 
+  stat_smooth(method = loess,color='red') +
+  labs(x = "Time", y = "Second Rate")+
+  theme_bw()  -> northeast_second_rate
+
+```
+
+# Midwest
+```{r}
+# 12 states 
+maindata %>%  
+  filter(administrative_area_level_2== c("Ohio","Michigan","Indiana","Wisconsin","Illinois","Minnesota","Iowa","Missouri","North Dakota", "South Dakota","Nebraska","Kansas")) -> midwest
+  
+```
+
+```{r}
+ggplot(data =midwest, mapping = aes(x = date , y = confirmed))+ 
+  stat_smooth(method = loess,color='blue') +
+  labs(x = "Time", y= "Confirmed Cases")+
+  theme_bw() -> midwest_confirmed
+
+ggplot(data =midwest, mapping = aes(x = date , y = daily_rate))+ 
+  stat_smooth(method = loess,color='blue') +
+   labs(x = "Time", y = "Daily Rate")+
+  theme_bw() -> midwest_rate
+ggplot(data =midwest, mapping = aes(x = date , y = second_rate))+ 
+  stat_smooth(method = loess,color='blue') +
+   labs(x = "Time", y = "Second Rate")+
+  theme_bw() -> midwest_second_rate
+
+
+```
+
+
+# South
+```{r}
+#16states
+maindata %>%  
+  filter(administrative_area_level_2==c("Delaware", "Maryland", "Virginia", "West Virginia", "Kentucky", "North Carolina", "South Carolina", "Tennessee", "Georgia", "Florida", "Alabama", "Mississippi", "Arkansas", "Louisiana", "Texas", "Oklahoma")) -> south
+
+```
+
+```{r}
+ggplot(data =south, mapping = aes(x = date , y = confirmed))+ 
+  stat_smooth(method = loess,color='green') +
+  labs(x = "Time", y= "Confirmed Cases")+
+  theme_bw() -> south_confirmed
+
+ggplot(data =south, mapping = aes(x = date , y = daily_rate))+ 
+  stat_smooth(method = loess,color='green') +
+   labs(x = "Time", y = "Daily Rate")+
+  theme_bw() -> south_rate
+
+ggplot(data =south, mapping = aes(x = date , y = second_rate))+ 
+  stat_smooth(method = loess,color='green') +
+   labs(x = "Time", y = "Daily Rate")+
+  theme_bw() -> south_second_rate
+
+
+```
+
+
+
+# West
+```{r}
+#13states
+maindata %>%  
+  filter(administrative_area_level_2 == c("Montana", "Idaho", "Wyoming", "Colorado", "New Mexico", "Arizona", "Utah", "Nevada", "California", "Oregon", "Washington", "Alaska", "Hawaii")) -> west
+
+```
+```{r}
+ggplot(data =west, mapping = aes(x = date , y = confirmed)) + 
+  stat_smooth(method = loess,color='orange') +
+  labs(x = "Time", y= "Confirmed Cases")+
+  theme_bw() -> west_confirmed 
+
+ggplot(data =west, mapping = aes(x = date , y = daily_rate)) + 
+  stat_smooth(method = loess,color='orange') +
+   labs(x = "Time", y = "Daily Rate")+
+  theme_bw() -> west_rate 
+ggplot(data =west, mapping = aes(x = date , y = second_rate)) + 
+  stat_smooth(method = loess,color='orange') +
+   labs(x = "Time", y = "Daily Rate")+
+  theme_bw() -> west_second_rate
+
+```
+
+
+# Four Regions 
+# Confirmed vs Time
+```{r}
+library(ggplot2)
+library(ggpubr)
+```
+
+
+```{r}
+regions_confirmed <- ggarrange(northeast_confirmed,midwest_confirmed,south_confirmed, west_confirmed,
+                    labels = c("Northeast", "Midwest", "South", "West"),
+                    ncol = 2, nrow = 2)
+regions_confirmed
+```
+# Four Regions 
+# Daily_rate vs Time 
+```{r}
+regions_rate <- ggarrange(northeast_rate, midwest_rate,south_rate, west_rate,
+                    labels = c("Northeast", "Midwest", "South", "West"),
+                    ncol = 2, nrow = 2)
+regions_rate
+```
+# Four Regions 
+# Second_rate vs Time 
+```{r}
+regions_second_rate <- ggarrange(northeast_second_rate,midwest_second_rate,south_second_rate, west_second_rate,
+                    labels = c("Northeast", "Midwest", "South", "West"),
+                    ncol = 2, nrow = 2)
+regions_second_rate
+```
+
