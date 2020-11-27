@@ -1,0 +1,74 @@
+---
+title: "Statistical Research on the Impact of Covid Stay at Home Restrictions"
+author: "Santiago Nule"
+date: "10/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+library(lubridate)
+```
+
+
+```{r}
+covid19("US", level = 2) %>%
+  rename(state_name = administrative_area_level_2 ) %>% 
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+
+```
+
+
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  summarise(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  arrange(state_name)
+
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  summarise(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  #distinct(first_date0, .keep_all = TRUE) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  # group_by(first_date0) %>% 
+  # distinct(state_name, .keep_all=TRUE) %>% 
+  group_by(state_name) ->first_date_stayh_orders2
+  #filter(date == min(date))
+
+first_date_stayh_orders2 %>% 
+  arrange(state_name)
+
+# #after_30_change <- function(easy_covid_df) {
+#   if {easy_covid_df$date == 
+
+
+# first_date_stayh_orders2 %>% 
+#   filter(date == first_date0 | date == first_date0+days(30)) %>% 
+#   arrange(state_name)
+  
+
+
+
+# first_date_stayh_orders2 %>% 
+#   mutate(date = date + days(30))-> date_of_30
+# 
+# easy_covid_df
+# 
+# easy_covid_df %>% 
+#    filter(date %in% first_date_stayh_orders)-> date_of_30
+
+
+
+  
+```
+
