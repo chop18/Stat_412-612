@@ -106,16 +106,16 @@ maindata %>%
 
 ```{r}
 ggplot(data =midwest, mapping = aes(x = date , y = confirmed))+ 
-  stat_smooth(method = loess,color='blue') +
+  stat_smooth(method = loess,color='dark blue') +
   labs(x = "Time", y= "Confirmed Cases")+
   theme_bw() -> midwest_confirmed
 
 ggplot(data =midwest, mapping = aes(x = date , y = daily_rate))+ 
-  stat_smooth(method = loess,color='blue') +
+  stat_smooth(method = loess,color='dark blue') +
    labs(x = "Time", y = "Daily Rate")+
   theme_bw() -> midwest_rate
 ggplot(data =midwest, mapping = aes(x = date , y = second_rate))+ 
-  stat_smooth(method = loess,color='blue') +
+  stat_smooth(method = loess,color='dark blue') +
    labs(x = "Time", y = "Second Rate")+
   theme_bw() -> midwest_second_rate
 
@@ -133,17 +133,17 @@ maindata %>%
 
 ```{r}
 ggplot(data =south, mapping = aes(x = date , y = confirmed))+ 
-  stat_smooth(method = loess,color='green') +
+  stat_smooth(method = loess,color='dark green') +
   labs(x = "Time", y= "Confirmed Cases")+
   theme_bw() -> south_confirmed
 
 ggplot(data =south, mapping = aes(x = date , y = daily_rate))+ 
-  stat_smooth(method = loess,color='green') +
+  stat_smooth(method = loess,color='dark green') +
    labs(x = "Time", y = "Daily Rate")+
   theme_bw() -> south_rate
 
 ggplot(data =south, mapping = aes(x = date , y = second_rate))+ 
-  stat_smooth(method = loess,color='green') +
+  stat_smooth(method = loess,color='dark green') +
    labs(x = "Time", y = "Second Rate")+
   theme_bw() -> south_second_rate
 
