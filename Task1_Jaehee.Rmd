@@ -144,7 +144,7 @@ ggplot(data =south, mapping = aes(x = date , y = daily_rate))+
 
 ggplot(data =south, mapping = aes(x = date , y = second_rate))+ 
   stat_smooth(method = loess,color='green') +
-   labs(x = "Time", y = "Daily Rate")+
+   labs(x = "Time", y = "Second Rate")+
   theme_bw() -> south_second_rate
 
 
@@ -171,7 +171,7 @@ ggplot(data =west, mapping = aes(x = date , y = daily_rate)) +
   theme_bw() -> west_rate 
 ggplot(data =west, mapping = aes(x = date , y = second_rate)) + 
   stat_smooth(method = loess,color='orange') +
-   labs(x = "Time", y = "Daily Rate")+
+   labs(x = "Time", y = "Second Rate")+
   theme_bw() -> west_second_rate
 
 ```
