@@ -21,18 +21,70 @@ library(lubridate)
 covid19("US", level = 2) %>%
   rename(state_name = administrative_area_level_2 ) %>% 
   select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
-  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+  arrange(state_name) %>% 
+  relocate("state_name", "date", "confirmed", "tests") %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" ))-> easy_covid_df
 
+easy_covid_df
 ```
 
+1.Get the average for confirmed cases 14 days prior to 1st stay home restriction.
+2. Get the average for confimed cases from 15 to 30 days after stay at home restrictions are first imposed. 
+3. Find the difference for each state
+4. Adjust to population by state
+5. plot
+
+
+```{r}
+#Two columns - one for restriction 1 and one for restriction level 2. Values would be a, b and none in each. The a is the before restriction group (first date - )and the b is the after restriction group (firstdate + 30  ) and then none for dates not in the cohort.
+#Then summarize the mean for each cohort in a group by state, restriction level, cohort.
+
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>% 
+  mutate(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  ungroup() %>% 
+  group_by(state_name) %>% 
+  # mutate(cohort1 = stay_home_restrictions ==1 ),  
+  #        cohort2= case_when()) %>%  
+  mutate(cohorta= (date<=first_date0 & date>(first_date0-days(14))),
+         cohortb = (date<dateplus30 & date>=(dateplus30-days(14))))%>%
+  relocate(cohorta, cohortb, date, first_date0, dateplus30) %>% 
+  arrange(state_name) %>% 
+  view()
+  
+
+```
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  select(c("state_name", "date","confirmed","date", "population" )) %>% 
+  mutate(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  distinct(first_date0)
+```
 
 ```{r}
 easy_covid_df %>% 
   group_by(state_name, stay_home_restrictions) %>% 
-  summarise(first_date0 = min(date),
+  mutate(first_date0 = min(date),
             dateplus30 = first_date0+days(30)) %>% 
-  arrange(state_name)
+  ungroup() %>% 
+  group_by(state_name) %>% 
+   mutate(cohort1 = case_when(stay_home_restrictions ==1 & date<=first_date0 & date>(first_date0-days(14))~"a",
+                              stay_home_restrictions ==1 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 1 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 1 ~"None"),
+         cohort2= case_when(stay_home_restrictions ==2 & date<=first_date0 & date>(first_date0-days(14))~"a",
+                              stay_home_restrictions ==2 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 2 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 2 ~"None")) %>%  
+  relocate(cohort1, cohort2, date, first_date0, dateplus30) %>% 
+  view()
+```
 
+
+
+```{r}
 easy_covid_df %>% 
   group_by(state_name, stay_home_restrictions) %>% 
   summarise(first_date0 = min(date),
@@ -55,10 +107,6 @@ first_date_stayh_orders2 %>%
 # first_date_stayh_orders2 %>% 
 #   filter(date == first_date0 | date == first_date0+days(30)) %>% 
 #   arrange(state_name)
-  
-
-
-
 # first_date_stayh_orders2 %>% 
 #   mutate(date = date + days(30))-> date_of_30
 # 
@@ -66,9 +114,5 @@ first_date_stayh_orders2 %>%
 # 
 # easy_covid_df %>% 
 #    filter(date %in% first_date_stayh_orders)-> date_of_30
-
-
-
-  
 ```
 

@@ -28,6 +28,7 @@ covid19("US", level = 2) %>%
 
 What day did states first issue stay at home orders:
 ```{r}
+
 easy_covid_df %>% 
   group_by(state_name, stay_home_restrictions) %>% 
   mutate(first_date0 = min(date)) %>% 
@@ -88,8 +89,4 @@ easy_covid_df %>%
 ```
 
 
-```{r}
-first_date_stayh_orders %>% 
-  left_join(rate_confirmed, by=)
-```
 

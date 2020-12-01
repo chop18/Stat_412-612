@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(COVID19)
 library(tidyverse)
 library(readr)
-distinct(administrative_area_level_2, .keep_all=TRUE)
+#distinct(administrative_area_level_2, .keep_all=TRUE)
 ```
 
 
@@ -61,12 +61,6 @@ easy_covid_df %>%
   mutate(second_rate= c(0,diff(daily_rate))) %>% 
   arrange(state_name, date)
   
-
-```
-
-
-```{r}
-
 
 ```
 

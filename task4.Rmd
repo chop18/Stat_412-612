@@ -1,0 +1,64 @@
+---
+title: "Task 4"
+output: html_notebook
+---
+
+
+Task 4: Compare how quickly states acted and how their covid rates are X number of weeks after.  Get a proportion based on the amount of time. 
+Meaning day 1 is the first day of a covid case in the us. Day n meaning last day of the count is today's date november 26. This difference will give a positive number most likely around 250days call .
+4a. Find the difference for the first date that covid arrived in us and todays date call this variable daymax it should be the same for each state.
+4b.For each state find the difference between  their first stay home restriction and first day of covid in us. 
+4c. Get the proportion of day max dif for each state.
+```{r}
+library(tidyverse)
+library(lubridate)
+library(COVID19)
+```
+
+
+```{r}
+covid19("US", level = 2) %>%
+  rename(state_name = administrative_area_level_2 ) %>% 
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+```
+
+https://www.nejm.org/doi/full/10.1056/NEJMoa2001191
+first day: January 19, 2020
+```{r}
+mdy("January 19, 2020")->day1
+today()-day1 ->tot_days0
+
+easy_covid_df %>% 
+  filter(!)
+  group_by(state_name, confirmed) %>% 
+  mutate(first_case = min(confirmed)) %>% 
+  select(state_name, date, first_case, confirmed) %>% 
+  arrange(date, state_name)
+
+
+  
+```
+
+
+Here we have the first day of state_home restrictions for for each state.
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date)) %>% 
+  select(state_name, date, first_date0, stay_home_restrictions) %>% 
+  distinct(first_date0) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  group_by(first_date0) %>% 
+  mutate(num_of_states_with_with_rest=n()) %>% 
+  arrange(state_name) %>% 
+  group_by(state_name) %>% 
+  filter( first_date0 ==min(first_date0))->first_date_stayh_orders
+  
+
+
+```
+
+
+
