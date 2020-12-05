@@ -139,8 +139,11 @@ ggplot(data =south, mapping = aes(x = date , y = confirmed))+
 
 ggplot(data =south, mapping = aes(x = date , y = daily_rate))+ 
   stat_smooth(method = loess,color='dark green') +
+  geom_vline(xintercept = mdy("06/03/20"))+
    labs(x = "Time", y = "Daily Rate")+
   theme_bw() -> south_rate
+
+south_rate
 
 ggplot(data =south, mapping = aes(x = date , y = second_rate))+ 
   stat_smooth(method = loess,color='dark green') +
