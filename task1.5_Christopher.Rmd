@@ -1,0 +1,160 @@
+---
+title: "Statistical Research on the Impact of Covid Stay at Home Restrictions"
+author: "Santiago Nule"
+date: "10/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+library(lubridate)
+```
+
+
+
+
+
+```{r}
+covid19("US", level = 2) %>%
+  rename(state_name = administrative_area_level_2 ) %>% 
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+```
+
+
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date)) %>% 
+  select(state_name, date, first_date0, stay_home_restrictions) %>% 
+  distinct(first_date0, .keep_all = TRUE) %>% 
+  filter(!is.na(stay_home_restrictions)&(!stay_home_restrictions==0)) %>% 
+  arrange(first_date0) %>% 
+  group_by(first_date0) %>% 
+  mutate(num_of_states_with_with_rest=n()) %>% 
+  separate(first_date0,
+           c("Year", "Month", "Day")) %>% 
+  arrange(Month, Day) %>% 
+  distinct(state_name, .keep_all=TRUE)->first_date_stayh_orders2
+
+first_date_stayh_orders2 %>% 
+  arrange(state_name)
+
+```
+Find the number of cases on the day of the stay at home restrictions, find the number of cases 1 month after restrictions
+```{r}
+#Two columns - one for restriction 1 and one for restriction level 2. Values would be a, b and none in each. The a is the before restriction group (first date - )and the b is the after restriction group (firstdate + 30  ) and then none for dates not in the cohort.
+#Then summarize the mean for each cohort in a group by state, restriction level, cohort.
+
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>% 
+  mutate(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  ungroup() %>% 
+  group_by(state_name) %>% 
+  # mutate(cohort1 = stay_home_restrictions ==1 ),  
+  #        cohort2= case_when()) %>%  
+  mutate(cohorta= (date<=first_date0 & date>(first_date0-days(14))),
+         cohortb = (date<dateplus30 & date>=(dateplus30-days(14))))%>%
+  relocate(cohorta, cohortb, date, first_date0, dateplus30) %>% 
+  arrange(state_name) 
+```
+
+```{r}
+easy_covid_df %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  select(c("state_name", "date","confirmed","date", "population" )) %>% 
+  mutate(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  distinct(first_date0)
+```
+
+
+```{r}
+easy_covid_df %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(first_date0 = min(date),
+            dateplus30 = first_date0+days(30)) %>% 
+  ungroup() %>% 
+  group_by(state_name) %>% 
+   mutate(cohort1 = case_when(stay_home_restrictions ==1 & date<="2020-04-30"~"a",
+                              stay_home_restrictions ==1 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 1 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 1 ~"None"),
+         cohort2= case_when(stay_home_restrictions ==2 & date<=first_date0 & date>=(first_date0-days(14))~"a",
+                              stay_home_restrictions ==2 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 2 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 2 ~"None")) %>%  
+  relocate(state_name, stay_home_restrictions, cohort1, cohort2, date, first_date0, dateplus30)->cohort_df
+```
+
+
+```{r}
+easy_covid_df %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>%
+  filter(!is.na(stay_home_restrictions) ) %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  summarize(first_date0 = min(date))-> day1and2
+
+day1and2 %>% 
+  pivot_wider(names_from = "stay_home_restrictions", values_from = "first_date0", names_prefix= "R_")->min_date
+
+#case a = stay at home changes from 0 to 1
+#
+min_date %>% 
+  mutate(Case_R = case_when(R_2>R_1 ~"first_is_one",
+                           R_2<R_1 ~"first_is_two")) 
+
+easy_covid_df %>% 
+  filter(!is.na(stay_home_restrictions) ) %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  summarise(first_date0 = min(date),
+            dateplus30 = first_date0+days(30))->dayTest
+
+
+dayTest %>% 
+  pivot_wider(names_from = "stay_home_restrictions", values_from = "dateplus30", names_prefix= "R_") 
+```
+```{r}
+cohort_df %>% 
+  group_by(cohort2) %>% 
+  filter(cohort2=="a")
+
+cohort_df %>% 
+  filter(cohort1=="a")
+
+cohort_df %>% 
+  filter(cohort1=="b")
+
+cohort_df %>% 
+  filter(cohort2=="b") %>% 
+  filter(state_name=="Alabama") %>% 
+  arrange(date)
+```
+```{r}
+easy_covid_df %>% 
+  left_join(y=min_date, by = "state_name") %>% 
+  rename(first_date_SH0 = R_0,
+         first_date_SH1 = R_1,
+         first_date_SH2 = R_2) %>% 
+  select(state_name, date, first_date_SH0, first_date_SH1, first_date_SH2, confirmed, deaths, population) %>%
+  mutate(date_pluse_30_SH0 = first_date_SH0+days(30),
+        date_pluse_30_SH1 = first_date_SH1+days(30),
+        date_pluse_30_SH2 = first_date_SH2+days(30))->main_covid_df
+
+main_covid_df %>%   group_by(state_name) %>% 
+   mutate(cohort1 = case_when(stay_home_restrictions ==1 & date<="2020-04-30"~"a",
+                              stay_home_restrictions ==1 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 1 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 1 ~"None"),
+         cohort2= case_when(stay_home_restrictions ==2 & date<=first_date0 & date>=(first_date0-days(14))~"a",
+                              stay_home_restrictions ==2 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
+                             stay_home_restrictions == 2 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 2 ~"None"))
+```
+
+
