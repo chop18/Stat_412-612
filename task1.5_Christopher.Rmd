@@ -139,22 +139,32 @@ cohort_df %>%
 ```
 ```{r}
 easy_covid_df %>% 
-  left_join(y=min_date, by = "state_name") %>% 
+  full_join(y=min_date, by = "state_name")->test
+
+easy_covid_df %>% 
+  full_join(y=min_date, by = "state_name") %>% 
   rename(first_date_SH0 = R_0,
          first_date_SH1 = R_1,
          first_date_SH2 = R_2) %>% 
-  select(state_name, date, first_date_SH0, first_date_SH1, first_date_SH2, confirmed, deaths, population) %>%
+  select(state_name, date,stay_home_restrictions, first_date_SH0, first_date_SH1, first_date_SH2, confirmed, deaths, population) %>%
   mutate(date_pluse_30_SH0 = first_date_SH0+days(30),
-        date_pluse_30_SH1 = first_date_SH1+days(30),
-        date_pluse_30_SH2 = first_date_SH2+days(30))->main_covid_df
+         date_pluse_30_SH1 = first_date_SH1+days(30),
+         date_pluse_30_SH2 = first_date_SH2+days(30))->main_covid_df
 
-main_covid_df %>%   group_by(state_name) %>% 
-   mutate(cohort1 = case_when(stay_home_restrictions ==1 & date<="2020-04-30"~"a",
-                              stay_home_restrictions ==1 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
-                             stay_home_restrictions == 1 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 1 ~"None"),
-         cohort2= case_when(stay_home_restrictions ==2 & date<=first_date0 & date>=(first_date0-days(14))~"a",
-                              stay_home_restrictions ==2 & date<=dateplus30 & date>=(dateplus30-days(14))~"b",
-                             stay_home_restrictions == 2 & date>first_date0 & date<(dateplus30-days(14))| date<(first_date0-days(14))| date>(dateplus30) | stay_home_restrictions != 2 ~"None"))
+main_covid_df
+
+main_covid_df %>%   
+  group_by(state_name) %>% 
+   mutate(cohort1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
+                              stay_home_restrictions ==1 & date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
+                             date>first_date_SH1 | date<(date_pluse_30_SH1-days(14)) | date<(first_date_SH1-days(14)) | date>date_pluse_30_SH1  ~"None"),
+         cohort2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date<(first_date_SH2-days(14))~"a",
+                              stay_home_restrictions ==2 & date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
+                              date>first_date_SH2 | date<(date_pluse_30_SH1-days(14)) | date<(first_date_SH2-days(14)) | date>date_pluse_30_SH2 ~"None")) %>% 
+group_by(cohort1, state_name) %>% 
+  mutate(daily_cases = c(0,diff(confirmed)),
+         rate= c(0,diff(daily_cases))) %>% 
+  summarise(mean = mean(daily_cases))
 ```
 
 
