@@ -153,12 +153,12 @@ main_covid_df %>%
    mutate(cohort_SH1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
                               stay_home_restrictions ==1 & date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
                              TRUE  ~"None"),
-         cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date<=(first_date_SH2-days(14))~"a",
+         cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date>=(first_date_SH2-days(14))~"a",
                               stay_home_restrictions ==2 & date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
                               TRUE ~"None")) %>% 
   filter(cohort_SH2 != "None") %>% 
   mutate(daily_cases = c(0,diff(confirmed)),
-         rate= c(0,diff(daily_cases))) 
+         rate = c(0,diff(daily_cases))) 
 
 ```
 
