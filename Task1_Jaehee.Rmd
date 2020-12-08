@@ -15,6 +15,7 @@ Graph the rates in a plot with respect to time. Try different kinds of plots pot
 library(COVID19)
 library(tidyverse)
 library(readr)
+library(lubridate)
 ```
 
 ```{r}
@@ -35,7 +36,7 @@ easy_covid_df %>%
   mutate(daily_rate = c(0,diff(confirmed))) %>% 
   mutate(second_rate= c(0,diff(daily_rate))) %>% 
   arrange(administrative_area_level_2, date) -> maindata
-```
+```   
 
 # Get mean of confirmed cases for each States
 ```{r}
@@ -64,7 +65,6 @@ maindata %>%
     slice(1L) %>%  
     select(administrative_area_level_2, date) -> first_case_day
 
-first_case_day
 ```
 # show the states n
 ```{r}
@@ -79,20 +79,46 @@ maindata %>%
   filter(administrative_area_level_2 == c("Connecticut", "Maine", "Massachusetts", "New Hampshire","Rhode Island", "Vermont", "Delaware", "Maryland", "New Jersey", "New York", "Pennsylvania")) -> northeast
 ```
 ```{r}
+library(dplyr)
+northeast %>%
+    group_by(administrative_area_level_2) %>%
+    arrange(date) %>%
+    slice(1L) %>%  
+    select(administrative_area_level_2, date) -> northeast_first_case
+
+# glimpse(northeast_first_case$date)
+northeast_first_date <- as.Date(northeast_first_case$date)
+# yday is the function to check how many days past after this year. 
+northeast_convert_days <- yday(northeast_first_date) - 1 # January 1 = day 0 
+mean_of_northeast <- mean(northeast_convert_days)
+mean_NE_start_date <- as.Date(mean_of_northeast, origin = "2020-01-01")
+
+
+```
+# Northeast first case date mean 
+```{r}
+mean_NE_start_date
+```
+
+```{r}
 ggplot(data =northeast, mapping = aes(x = date , y = confirmed))+ 
-  stat_smooth(method = loess,color='red') +
+  stat_smooth(method = loess,color='black') +
   labs(x = "Time", y= "Confirmed Cases")+
+   geom_vline(xintercept = mean_NE_start_date, color = "red", linetype = 2)+
   theme_bw()  -> northeast_confirmed
 
 ggplot(data =northeast, mapping = aes(x = date , y = daily_rate))+ 
-  stat_smooth(method = loess,color='red') +
+  stat_smooth(method = loess,color='black') +
   labs(x = "Time", y = "Daily Rate")+
+     geom_vline(xintercept = mean_NE_start_date, color = "red", linetype = 2)+
   theme_bw()  -> northeast_rate
 
 ggplot(data =northeast, mapping = aes(x = date , y = second_rate))+ 
-  stat_smooth(method = loess,color='red') +
+  stat_smooth(method = loess,color='black') +
   labs(x = "Time", y = "Second Rate")+
+       geom_vline(xintercept = mean_NE_start_date, color = "red", linetype = 2)+
   theme_bw()  -> northeast_second_rate
+
 
 ```
 
@@ -104,19 +130,49 @@ maindata %>%
   
 ```
 
+
+
+```{r}
+library(dplyr)
+midwest %>%
+    group_by(administrative_area_level_2) %>%
+    arrange(date) %>%
+    slice(1L) %>%  
+    select(administrative_area_level_2, date) -> midwest_first_case
+
+
+
+# glimpse(midwest_first_case$date)
+midwest_first_date <- as.Date(midwest_first_case$date)
+# yday is the function to check how many days past after this year. 
+midwest_convert_days <- yday(midwest_first_date) - 1 # January 1 = day 0 
+mean_of_midwest <- mean(midwest_convert_days)
+mean_MW_start_date <- as.Date(mean_of_midwest, origin = "2020-01-01")
+```
+
+# Midwest first case date mean
+```{r}
+mean_MW_start_date
+```
+
+
 ```{r}
 ggplot(data =midwest, mapping = aes(x = date , y = confirmed))+ 
   stat_smooth(method = loess,color='dark blue') +
   labs(x = "Time", y= "Confirmed Cases")+
+   geom_vline(xintercept = mean_MW_start_date, color = "red", linetype = 2)+
   theme_bw() -> midwest_confirmed
 
 ggplot(data =midwest, mapping = aes(x = date , y = daily_rate))+ 
   stat_smooth(method = loess,color='dark blue') +
    labs(x = "Time", y = "Daily Rate")+
+   geom_vline(xintercept = mean_MW_start_date, color = "red", linetype = 2)+
   theme_bw() -> midwest_rate
+
 ggplot(data =midwest, mapping = aes(x = date , y = second_rate))+ 
   stat_smooth(method = loess,color='dark blue') +
    labs(x = "Time", y = "Second Rate")+
+   geom_vline(xintercept = mean_MW_start_date, color = "red", linetype = 2)+
   theme_bw() -> midwest_second_rate
 
 
@@ -130,24 +186,48 @@ maindata %>%
   filter(administrative_area_level_2==c("Delaware", "Maryland", "Virginia", "West Virginia", "Kentucky", "North Carolina", "South Carolina", "Tennessee", "Georgia", "Florida", "Alabama", "Mississippi", "Arkansas", "Louisiana", "Texas", "Oklahoma")) -> south
 
 ```
+```{r}
+library(dplyr)
+south %>%
+    group_by(administrative_area_level_2) %>%
+    arrange(date) %>%
+    slice(1L) %>%  
+    select(administrative_area_level_2, date) -> south_first_case
+
+# glimpse(south_first_case$date)
+south_first_date <- as.Date(south_first_case$date)
+# yday is the function to check how many days past after this year. 
+south_convert_days <- yday(south_first_date) - 1 # January 1 = day 0 
+mean_of_south <- mean(south_convert_days)
+mean_S_start_date <- as.Date(mean_of_south, origin = "2020-01-01")
+```
+# South first case day mean
+```{r}
+mean_S_start_date
+```
+
+
 
 ```{r}
 ggplot(data =south, mapping = aes(x = date , y = confirmed))+ 
   stat_smooth(method = loess,color='dark green') +
   labs(x = "Time", y= "Confirmed Cases")+
+  geom_vline(xintercept = mean_S_start_date, color = "red", linetype = 2)+
   theme_bw() -> south_confirmed
 
 ggplot(data =south, mapping = aes(x = date , y = daily_rate))+ 
   stat_smooth(method = loess,color='dark green') +
-  geom_vline(xintercept = mdy("06/03/20"))+
+ # geom_vline(xintercept = mdy("06/03/20"))+
    labs(x = "Time", y = "Daily Rate")+
+    geom_vline(xintercept = mean_S_start_date, color = "red", linetype = 2)+
   theme_bw() -> south_rate
 
-south_rate
+
 
 ggplot(data =south, mapping = aes(x = date , y = second_rate))+ 
   stat_smooth(method = loess,color='dark green') +
    labs(x = "Time", y = "Second Rate")+
+    geom_vline(xintercept = mean_S_start_date, color = "red", linetype = 2)+
   theme_bw() -> south_second_rate
 
 
@@ -163,18 +243,48 @@ maindata %>%
 
 ```
 ```{r}
+library(dplyr)
+west %>%
+    group_by(administrative_area_level_2) %>%
+    arrange(date) %>%
+    slice(1L) %>%  
+    select(administrative_area_level_2, date) -> west_first_case
+
+
+
+# glimpse(west_first_case$date)
+south_first_date <- as.Date(west_first_case$date)
+# yday is the function to check how many days past after this year. 
+west_convert_days <- yday(south_first_date) - 1 # January 1 = day 0 
+mean_of_west <- mean(west_convert_days)
+mean_W_start_date <- as.Date(mean_of_west, origin = "2020-01-01")
+
+```
+
+# West first case date mean 
+```{r}
+mean_W_start_date
+```
+
+
+
+```{r}
 ggplot(data =west, mapping = aes(x = date , y = confirmed)) + 
   stat_smooth(method = loess,color='orange') +
   labs(x = "Time", y= "Confirmed Cases")+
+      geom_vline(xintercept = mean_W_start_date, color = "red", linetype = 2)+
   theme_bw() -> west_confirmed 
 
 ggplot(data =west, mapping = aes(x = date , y = daily_rate)) + 
   stat_smooth(method = loess,color='orange') +
    labs(x = "Time", y = "Daily Rate")+
+      geom_vline(xintercept = mean_W_start_date, color = "red", linetype = 2)+
   theme_bw() -> west_rate 
+
 ggplot(data =west, mapping = aes(x = date , y = second_rate)) + 
   stat_smooth(method = loess,color='orange') +
    labs(x = "Time", y = "Second Rate")+
+      geom_vline(xintercept = mean_W_start_date, color = "red", linetype = 2)+
   theme_bw() -> west_second_rate
 
 ```
