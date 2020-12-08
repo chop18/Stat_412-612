@@ -65,8 +65,20 @@ cohort_rate_wide
 
 cohort_rate_wide %>% 
   left_join(y=distinct(select(easy_covid_df, c(state_name, population))), by ="state_name") %>% 
-  mutate(b_minus_a = (mean_cases_b - mean_cases_a)/population) 
+  
+  mutate(b_minus_a_pop = (mean_cases_b - mean_cases_a)/population,
+         c_minus_b_pop = (mean_cases_b - mean_cases_c)/population,
+         b_minus_a= (mean_cases_b - mean_cases_a),
+         c_minus_b= (mean_cases_b - mean_cases_c))-> for_graph_abc 
+
+for_graph_abc
 ```
 
+```{r}
+for_graph_abc %>% 
+  ggplot(aes(x= state_name, y= b_minus_a))+ 
+  geom_histogram()
+
+```
 
 
