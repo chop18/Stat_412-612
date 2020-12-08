@@ -1,0 +1,108 @@
+---
+title: "Project_Jaehee"
+author: "Jaehee Lee"
+date: "12/8/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+```
+# data 
+```{r}
+covid19("US", level = 2) %>%
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("administrative_area_level_2", "date", "confirmed", "tests")-> easy_covid_df
+```
+  
+
+# Initial model 
+```{r}
+fit <- lm(confirmed ~ tests+ hosp+ vent+ population+ school_closing+ workplace_closing+ cancel_events+ gatherings_restrictions+ transport_closing+ stay_home_restrictions+ internal_movement_restrictions+ testing_policy+ contact_tracing,data = easy_covid_df)
+summary(fit)
+```
+
+```{r}
+fit1 <- lm(confirmed ~ tests+ hosp+ vent+ population+ school_closing+ workplace_closing+ cancel_events+ gatherings_restrictions+ transport_closing+ stay_home_restrictions+ internal_movement_restrictions+ testing_policy+ contact_tracing+ administrative_area_level_2, data = easy_covid_df)
+summary(fit1)
+```
+
+```{r}
+check<-function(a)
+{
+n <- length(a$fit)
+aic <- extractAIC(a)[2]
+bic <- extractAIC(a, k = log(n))[2]
+cbind(aic, bic)
+}
+check(fit)
+check(fit1)
+```
+
+
+# Northeast
+```{r}
+library(dplyr)
+
+# Northeast 
+# 11 states there are 
+#Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont, Delaware, Maryland, New #Jersey, New York, and Pennsylvania.
+easy_covid_df %>% 
+  filter(administrative_area_level_2 == c("Connecticut", "Maine", "Massachusetts", "New Hampshire","Rhode Island", "Vermont", "Delaware", "Maryland", "New Jersey", "New York", "Pennsylvania")) %>% 
+  add_column(region = "Northeast") -> covid_Northeast
+  
+```
+
+# Midwest
+```{r}
+# 12 states 
+easy_covid_df %>%  
+  filter(administrative_area_level_2== c("Ohio","Michigan","Indiana","Wisconsin","Illinois","Minnesota","Iowa","Missouri","North Dakota", "South Dakota","Nebraska","Kansas"))  %>%  
+  add_column(region = "Midwest") -> covidMidwest
+  
+```
+
+# South
+```{r}
+#16states
+easy_covid_df %>%  
+  filter(administrative_area_level_2==c("Delaware", "Maryland", "Virginia", "West Virginia", "Kentucky", "North Carolina", "South Carolina", "Tennessee", "Georgia", "Florida", "Alabama", "Mississippi", "Arkansas", "Louisiana", "Texas", "Oklahoma"))  %>%  
+  add_column(region = "South") -> covidSouth
+
+```
+
+# West
+```{r}
+#13states
+easy_covid_df %>%  
+  filter(administrative_area_level_2 == c("Montana", "Idaho", "Wyoming", "Colorado", "New Mexico", "Arizona", "Utah", "Nevada", "California", "Oregon", "Washington", "Alaska", "Hawaii"))  %>%  
+  add_column(region = "West") -> covidWest 
+
+```
+
+```{r}
+rbind(covid_Northeast, covidMidwest, covidSouth, covidWest) -> new_dataframe
+```
+
+```{r}
+region <- as.factor(new_dataframe$region)
+fit2 <- lm(confirmed ~ factor(region) , data = new_dataframe)
+summary(fit2)
+```
+
+```{r}
+coef(fit2)
+```
+```{r}
+confint(fit2, level = 0.90)
+```
+
+
+
+
