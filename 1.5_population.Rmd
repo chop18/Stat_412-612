@@ -1,0 +1,72 @@
+---
+title: "1.5_population"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(COVID19)
+library(tidyverse)
+library(readr)
+library(lubridate)
+```
+
+
+```{r}
+covid19("US", level = 2) %>%
+  rename(state_name = administrative_area_level_2 ) %>% 
+  select(-c("administrative_area_level_1","administrative_area_level_3","latitude","longitude","currency", "administrative_area_level_1")) %>% 
+  relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
+```
+
+
+
+```{r}
+easy_covid_df %>% 
+  full_join(y=min_date, by = "state_name") %>% 
+  rename(first_date_SH0 = R_0,
+         first_date_SH1 = R_1,
+         first_date_SH2 = R_2) %>% 
+  select(state_name, date, stay_home_restrictions, first_date_SH0, first_date_SH1, first_date_SH2, confirmed, deaths, population) %>%
+  mutate(date_pluse_30_SH0 = first_date_SH0+days(30),
+         date_pluse_30_SH1 = first_date_SH1+days(30),
+         date_pluse_30_SH2 = first_date_SH2+days(30))->main_covid_df
+```
+
+```{r}
+main_covid_df %>%   
+  group_by(state_name) %>% 
+   mutate(cohort_SH1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
+                              date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
+                             TRUE  ~"None"),
+         cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date>=(first_date_SH2-days(14))~"a",
+                               date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
+                               date<=date_pluse_30_SH2 + days(30) & date>=(date_pluse_30_SH2 + days(16))~"c",
+                              TRUE ~"None")) %>% 
+  mutate(daily_cases = c(0,diff(confirmed)),
+         rate = c(0,diff(daily_cases))) %>% 
+  filter(cohort_SH2 !="None") %>% 
+   group_by(state_name, cohort_SH2) %>%
+   summarize(mean_cases = mean(daily_cases),
+             mean_rate = mean(rate))->cohort_rate
+
+cohort_rate
+```
+
+```{r}
+cohort_rate %>% 
+  pivot_wider(names_from = "cohort_SH2", values_from = c("mean_cases", "mean_rate")) ->cohort_rate_wide
+
+cohort_rate_wide
+
+
+cohort_rate_wide %>% 
+  left_join(y=distinct(select(easy_covid_df, c(state_name, population))), by ="state_name") %>% 
+  mutate(b_minus_a = (mean_cases_b - mean_cases_a)/population) 
+```
+
+
+

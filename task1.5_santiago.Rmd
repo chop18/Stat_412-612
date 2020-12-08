@@ -24,7 +24,7 @@ covid19("US", level = 2) %>%
   arrange(state_name) %>% 
   relocate("state_name", "date", "confirmed", "tests")-> easy_covid_df
 
-easy_covid_df
+
 ```
 
 1.Get the average for confirmed cases 14 days prior to 1st stay home restriction.
@@ -55,6 +55,7 @@ easy_covid_df %>%
   
 
 ```
+
 ```{r}
 easy_covid_df %>% 
   group_by(state_name, stay_home_restrictions) %>% 
@@ -93,7 +94,7 @@ easy_covid_df %>%
 day1and2 %>% 
   pivot_wider(names_from = "stay_home_restrictions", values_from = "first_date0", names_prefix= "R-")->day1and2
 
-day1and2
+
 
 ```
 
