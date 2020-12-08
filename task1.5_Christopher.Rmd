@@ -151,15 +151,30 @@ main_covid_df
 main_covid_df %>%   
   group_by(state_name) %>% 
    mutate(cohort_SH1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
-                              stay_home_restrictions ==1 & date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
+                              date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
                              TRUE  ~"None"),
          cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date>=(first_date_SH2-days(14))~"a",
-                              stay_home_restrictions ==2 & date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
+                               date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
+                               date<=date_pluse_30_SH2 + days(30) & date>=(date_pluse_30_SH2 + days(16))~"c",
                               TRUE ~"None")) %>% 
-  filter(cohort_SH2 != "None") %>% 
   mutate(daily_cases = c(0,diff(confirmed)),
-         rate = c(0,diff(daily_cases))) 
+         rate = c(0,diff(daily_cases))) %>% 
+  filter(cohort_SH2 !="None") %>% 
+   group_by(state_name, cohort_SH2) %>%
+   summarize(mean_cases = mean(daily_cases),
+             mean_rate = mean(rate))->cohort_rate
 
 ```
 
+```{r}
+cohort_rate %>% 
+  pivot_wider(names_from = "cohort_SH2", values_from = c("mean_cases", "mean_rate")) ->cohort_rate_wide
+cohort_rate_wide %>% 
+  left_join(y=easy_covid_df, by="state_name") %>% 
+  mutate(b_minus_a = (mean_cases_b - mean_cases_a)/population) 
+```
+
+```{r}
+#
+```
 
