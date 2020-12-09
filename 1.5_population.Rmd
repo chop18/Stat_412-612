@@ -78,6 +78,16 @@ for_graph_abc
 ```{r}
 library(usmap)
 
+data_fips<-fips_info()
+
+data_fips %>% 
+  rename("state_name" = "full")->data_fips
+
+data_fips
+
+for_graph_abc %>% 
+  full_join(y=data_fips$fips, by="state_name", copy = TRUE)
+
 plot_usmap(data = for_graph_abc, values = "b_minus_a", color = "blue") + 
   scale_fill_continuous(low = "white", high = "red", 
                         name = "Deaths", label = scales::comma)+
@@ -87,8 +97,9 @@ plot_usmap(data = for_graph_abc, values = "b_minus_a", color = "blue") +
   theme(legend.position = "top")
 ```
 
-```{r}
 
+```{r}
+covid19cite(covid19("US"))
 ```
 
 

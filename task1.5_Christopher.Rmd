@@ -14,6 +14,7 @@ library(COVID19)
 library(tidyverse)
 library(readr)
 library(lubridate)
+library(ggplot2)
 ```
 
 
@@ -153,6 +154,7 @@ main_covid_df %>%
   group_by(state_name) %>% 
    mutate(cohort_SH1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
                               date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
+                              date<=date_pluse_30_SH1 + days(30) & date>=(date_pluse_30_SH1 + days(16))~"c",
                              TRUE  ~"None"),
          cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date>=(first_date_SH2-days(14))~"a",
                                date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
@@ -204,8 +206,18 @@ easy_covid_df %>%
   select("stay_home_restrictions", "state_name", "date") %>%
   filter(!is.na(stay_home_restrictions)) %>% 
   group_by(state_name) %>% 
-  mutate(test = diff(c(0,stay_home_restrictions))) %>% 
-  filter(test != 0) %>% 
+  mutate(policy_change = diff(c(0,stay_home_restrictions))) %>% 
+  filter(policy_change != 0) %>% 
   rename("Policy_Change_Date" = "date")->policy_change
+
+policy_change
+```
+
+```{r}
+policy_change %>% 
+  group_by(state_name, Policy_Change_Date) %>% 
+  ggplot(aes(x=policy_change, y=Policy_Change_Date, color=state_name))+
+    geom_point()+
+    facet_wrap(~"state_name")
 ```
 

@@ -1,0 +1,82 @@
+---
+title: "Data prep"
+author: "Christopher Hopkins"
+date: "12/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+  Our data set comes from the Covid-19 data hub, which is an open source data set for R made by Guidotti and Ardia. The data set is sourced from a variety of global sources and the United States specific data set is sourced from John Hopkins and the Central Intelligence Agency. Additional information is gathered from the Oxford COVID-19 Government Response Tracker, the World Bank COVID-19 databases, and both Google and Apple Mobility reports.
+
+	The Oxford COVID-19 Government Response Tracker includes a set of ordinal variables that are indicators for the stringency of government policy. For our purposes we focused in on the stringency of stay at home orders issued by the State governments in the United States. 
+	
+	Stay at home orders in the United States consists of the following ordinal scale:
+*	Level 0: No Measure
+* Level 1: Recommend not leaving house
+*	Level 2: require not leaving house with exceptions for daily exercise, grocery shopping, and ‘essential’ trips.
+
+  This ordinal scale presents the first challenge to overcome when we began our data analysis. In order to find a correlation between the daily cases and rate of new cases and policy the initial date of implementation of policy must be found. We ultimately took two approaches to trying to solve this problem, one was unsuccessful the other was not.
+  
+The failed method consisted of the following code:
+```{r}
+# easy_covid_df %>% 
+#   group_by(state_name, stay_home_restrictions) %>% 
+#   mutate(first_date0 = min(date)) 
+```
+  The idea was to find the initial date stay at home restrictions were ordered for a given state. However, many states changed their policy multiple times in response to the Covid-19 pandemic, as a result this solution failed to capture all relevant policy changes.
+  
+  Our second attempt:
+```{r}
+# easy_covid_df %>% 
+#   select("stay_home_restrictions", "state_name", "date") %>%
+#   filter(!is.na(stay_home_restrictions)) %>% 
+#   group_by(state_name) %>% 
+#   mutate(policy_change = diff(c(0,stay_home_restrictions))) %>% 
+#   filter(policy_change != 0)
+```
+  This creates a data frame where policy change is represented by a numerical value indicating the escalation or deescalation of policy. 
+  
+  The ordinal scale for policy change is as follows:
+ * -1: deescalation by one level
+ *  1: escalation by one level
+ *  2: escalation by two levels
+  
+  For example, a policy change of 2 indicates an escalation of policy by a factor of two on the ordinal scale. In the data set this represents a shift from a level 0 policy to a level 2 policy.
+  
+  The next step was to find the number of daily cases and rate of new cases for the data set. In order to accomplish this the data set had to be separated into three distinct cohorts.
+  
+  The cohorts are as follows:
+  1. Cohort A represents the dates 15 days prior of a stay at home order being issued
+  2. Cohort B represents the dates 15 to 30 days after a stay at home order is issued
+  3. Cohort C represents the dates 45 to 60 days after a stay at home order is issued
+  
+  Programmatically this was done using a mutate function with a case_when.
+  
+```{r}
+# main_covid_df %>%   
+#   group_by(state_name) %>% 
+#    mutate(cohort_SH1 = case_when(stay_home_restrictions !=1 & date<=first_date_SH1 & date>=(first_date_SH1-days(14))~"a",
+#                               date<=date_pluse_30_SH1 & date>=(date_pluse_30_SH1-days(14))~"b",
+#                               date<=date_pluse_30_SH1 + days(30) & date>=(date_pluse_30_SH1 + days(16))~"c",
+#                              TRUE  ~"None"),
+#          cohort_SH2= case_when(stay_home_restrictions !=2 & date<=first_date_SH2 & date>=(first_date_SH2-days(14))~"a",
+#                                date<=date_pluse_30_SH2 & date>=(date_pluse_30_SH2-days(14))~"b",
+#                                date<=date_pluse_30_SH2 + days(30) & date>=(date_pluse_30_SH2 + days(16))~"c",
+#                               TRUE ~"None"))
+```
+
+  The final step is to determine the number of daily cases and the rate of new cases. This was done using the following code:
+  
+```{r}
+  # mutate(daily_cases = c(0,diff(confirmed)),
+  #        rate = c(0,diff(daily_cases))) %>% 
+  # filter(cohort_SH2 !="None") %>% 
+  #  group_by(state_name, cohort_SH2) %>%
+  #  summarize(mean_cases = mean(daily_cases),
+  #            mean_rate = mean(rate))
+```
+  
+  The initial number of cases was considered zero for all states as a means of standardizing the data frame. As we are primarily concerned with the number of new cases daily not the total number of cases we are able to ignore the initial number of confirmed cases when analyzing the data set.
