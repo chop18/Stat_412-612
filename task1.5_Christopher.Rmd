@@ -105,6 +105,7 @@ easy_covid_df %>%
 day1and2 %>% 
   pivot_wider(names_from = "stay_home_restrictions", values_from = "first_date0", names_prefix= "R_")->min_date
 
+min_date
 
 easy_covid_df %>% 
   filter(!is.na(stay_home_restrictions) ) %>% 
@@ -170,11 +171,41 @@ main_covid_df %>%
 cohort_rate %>% 
   pivot_wider(names_from = "cohort_SH2", values_from = c("mean_cases", "mean_rate")) ->cohort_rate_wide
 cohort_rate_wide %>% 
-  left_join(y=easy_covid_df, by="state_name") %>% 
-  mutate(b_minus_a = (mean_cases_b - mean_cases_a)/population) 
+  left_join(y=distinct(select(easy_covid_df, c(state_name, population))), by="state_name") %>% 
+  muate(b_minus_a = (mean_cases_b - mean_cases_a)/population)
+```
+```{r}
+easy_covid_df %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>% 
+  left_join(y=distinct(min_date), by="state_name") %>% 
+  filter(!is.na(stay_home_restrictions)) %>% 
+  mutate(policy_change = case_when(R_1<R_2 ~"a",
+                                   R_1>R_2 ~"b")) %>% 
+  filter(date>R_2) %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(min_date = min(date))->min_date_cohort_a
+
+easy_covid_df %>% 
+  select(c("state_name", "date","confirmed","date", "population", "stay_home_restrictions" )) %>% 
+  left_join(y=distinct(min_date), by="state_name") %>% 
+  filter(!is.na(stay_home_restrictions)) %>% 
+  mutate(policy_change = case_when(R_1<R_2 ~"a",
+                                   R_1>R_2 ~"b")) %>% 
+  filter(date>R_1) %>% 
+  group_by(state_name, stay_home_restrictions) %>% 
+  mutate(min_date = min(date))->min_date_cohort_b
+
+min_date_cohort_a 
+min_date_cohort_b
 ```
 
 ```{r}
-#
+easy_covid_df %>% 
+  select("stay_home_restrictions", "state_name", "date") %>%
+  filter(!is.na(stay_home_restrictions)) %>% 
+  group_by(state_name) %>% 
+  mutate(test = diff(c(0,stay_home_restrictions))) %>% 
+  filter(test != 0) %>% 
+  rename("Policy_Change_Date" = "date")->policy_change
 ```
 
