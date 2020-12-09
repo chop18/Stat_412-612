@@ -80,3 +80,5 @@ The failed method consisted of the following code:
 ```
   
   The initial number of cases was considered zero for all states as a means of standardizing the data frame. As we are primarily concerned with the number of new cases daily not the total number of cases we are able to ignore the initial number of confirmed cases when analyzing the data set.
+  
+  Along with these steps some basic actions were taken to to clean the data, such as filtering out "NA" results. Fortunately the data set we were using had few missing values.
