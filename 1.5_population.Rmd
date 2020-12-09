@@ -65,7 +65,6 @@ cohort_rate_wide
 
 cohort_rate_wide %>% 
   left_join(y=distinct(select(easy_covid_df, c(state_name, population))), by ="state_name") %>% 
-  
   mutate(b_minus_a_pop = (mean_cases_b - mean_cases_a)/population,
          c_minus_b_pop = (mean_cases_b - mean_cases_c)/population,
          b_minus_a= (mean_cases_b - mean_cases_a),
@@ -74,10 +73,21 @@ cohort_rate_wide %>%
 for_graph_abc
 ```
 
+
+
 ```{r}
-for_graph_abc %>% 
-  ggplot(aes(x= state_name, y= b_minus_a))+ 
-  geom_histogram()
+library(usmap)
+
+plot_usmap(data = for_graph_abc, values = "b_minus_a", color = "blue") + 
+  scale_fill_continuous(low = "white", high = "red", 
+                        name = "Deaths", label = scales::comma)+
+  labs(title = "US States",
+       subtitle = paste0("Total Deaths by State as of ")) + 
+  theme(panel.background = element_rect(color = "black", fill = "white")) +
+  theme(legend.position = "top")
+```
+
+```{r}
 
 ```
 
